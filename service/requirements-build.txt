@@ -1,0 +1,4 @@
+# Pinned build backend for the upstream Timestral source archive.
+setuptools==84.2.0 \
+    --hash=sha256:6f445ca2ce864605f81e223f262b4c94ffcb9a4a63473bae0ed7be5aab0291da \
+    --hash=sha256:8cc107ac7a403105dc8d6477664171f36135fab26adf8b5e0edaebc313f39b21

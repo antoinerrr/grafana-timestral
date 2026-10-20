@@ -1,0 +1,6 @@
+# Unit tests have no model/runtime dependency and do not download weights.
+fastapi==0.150.0
+pydantic==2.14.1
+numpy==2.5.4
+httpx==0.28.1
+pytest==9.1.1

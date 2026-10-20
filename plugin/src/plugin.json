@@ -1,0 +1,51 @@
+{
+  "$schema": "https://raw.githubusercontent.com/grafana/grafana/main/docs/sources/developers/plugins/plugin.schema.json",
+  "type": "datasource",
+  "name": "Timestral Forecasting",
+  "id": "antoinerrr-timestral-datasource",
+  "metrics": true,
+  "backend": false,
+  "alerting": false,
+  "annotations": false,
+  "info": {
+    "description": "Forecast numeric time series from existing Grafana datasources with a self-hosted Timestral service.",
+    "author": {
+      "name": "Antoine Roy",
+      "url": "https://github.com/antoinerrr"
+    },
+    "keywords": ["forecast", "timestral", "prediction", "time-series"],
+    "logos": {
+      "small": "img/logo.svg",
+      "large": "img/logo.svg"
+    },
+    "links": [
+      {
+        "name": "Project",
+        "url": "https://github.com/antoinerrr/grafana-timestral"
+      },
+      {
+        "name": "Report an issue",
+        "url": "https://github.com/antoinerrr/grafana-timestral/issues"
+      }
+    ],
+    "screenshots": [],
+    "version": "0.1.0",
+    "updated": "2026-10-20"
+  },
+  "dependencies": {
+    "grafanaDependency": ">=13.0.0",
+    "plugins": []
+  },
+  "routes": [
+    {
+      "path": "timestral",
+      "url": "{{ .JsonData.serviceUrl }}",
+      "headers": [
+        {
+          "name": "Authorization",
+          "content": "Bearer {{ .SecureJsonData.apiToken }}"
+        }
+      ]
+    }
+  ]
+}

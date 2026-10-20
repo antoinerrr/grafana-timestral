@@ -1,0 +1,9 @@
+# Human-maintained direct dependencies. requirements.txt is the Linux amd64/Python 3.12 hash lock.
+fastapi==0.150.0
+pydantic==2.14.1
+uvicorn==0.54.0
+numpy==2.5.4
+huggingface-hub==2.2.0
+safetensors==0.8.0
+torch @ https://download-r2.pytorch.org/whl/cpu/torch-2.14.1%2Bcpu-cp312-cp312-manylinux_2_28_x86_64.whl#sha256=5a6363570c753812540a05eb82380e329469cbe668643e88111414c12627711f
+timestral @ https://github.com/mistralai/timestral/archive/a534bdbd244d64f3d9d743f46c7bf6fc330ed4ff.zip
