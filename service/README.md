@@ -4,13 +4,15 @@ A small CPU service that forecasts values supplied by the Grafana plugin. It has
 
 ## Run
 
-The image currently targets **Linux amd64**, with Python 3.12 and CPU-only PyTorch. From the repository root:
+The published image targets **Linux amd64**, with Python 3.12 and CPU-only PyTorch:
 
 ```sh
-docker build --platform linux/amd64 -t timestral-service ./service
 docker run --rm --platform linux/amd64 --cpus=4 --memory=8g \
-  -p 127.0.0.1:8000:8000 -v timestral-cache:/cache timestral-service
+  -p 127.0.0.1:8000:8000 -v timestral-cache:/cache \
+  ghcr.io/antoinerrr/grafana-timestral:latest
 ```
+
+For Kubernetes, use the [deployment example](../README.md#kubernetes). CI publishes `latest` and `sha-<commit>` after tests pass on `main`. To build a local development image, run `docker build --platform linux/amd64 -t timestral-service ./service` from the repository root.
 
 Set the Grafana datasource's service URL to an address reachable **from Grafana**. The repository's Compose demo handles this for you. Keep one Uvicorn worker per container. Four CPU cores and 8 GiB is a generous starting limit for either supported model; measure your own history lengths and concurrency before reducing it.
 

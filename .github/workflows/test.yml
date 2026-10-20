@@ -1,4 +1,4 @@
-name: Test
+name: CI
 
 on:
   push:
@@ -7,6 +7,10 @@ on:
 
 permissions:
   contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
 
 jobs:
   plugin:
@@ -33,8 +37,46 @@ jobs:
           python-version: "3.12"
       - run: pip install -r requirements-test.txt && python -m pytest -q
         working-directory: service
-      - run: docker build -t timestral:test service
+
+  container:
+    if: github.event_name == 'pull_request'
+    needs: [plugin, service]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - run: docker build --platform linux/amd64 -t timestral:test service
       - run: docker run -d --name timestral --cpus 4 --memory 8g timestral:test
       - run: docker exec timestral python smoke.py --wait-seconds 300
       - if: failure()
         run: docker logs timestral
+
+  publish:
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+    needs: [plugin, service]
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    permissions:
+      contents: read
+      packages: write
+    env:
+      IMAGE: ghcr.io/antoinerrr/grafana-timestral
+    steps:
+      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262
+      - run: >-
+          docker build --platform linux/amd64
+          --label org.opencontainers.image.revision="$GITHUB_SHA"
+          -t "$IMAGE:sha-$GITHUB_SHA" service
+      - run: docker run -d --name timestral --cpus 4 --memory 8g "$IMAGE:sha-$GITHUB_SHA"
+      - run: docker exec timestral python smoke.py --wait-seconds 300
+      - if: failure()
+        run: docker logs timestral
+      - uses: docker/login-action@c94ce9fb468520275223c153574b00df6fe4bcc9
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - run: |
+          docker push "$IMAGE:sha-$GITHUB_SHA"
+          docker tag "$IMAGE:sha-$GITHUB_SHA" "$IMAGE:latest"
+          docker push "$IMAGE:latest"

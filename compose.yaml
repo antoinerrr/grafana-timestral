@@ -1,6 +1,6 @@
 services:
   timestral:
-    build: ./service
+    image: ghcr.io/antoinerrr/grafana-timestral:latest
     platform: linux/amd64
     environment:
       TIMESTRAL_MODEL: ${TIMESTRAL_MODEL:-5M}
