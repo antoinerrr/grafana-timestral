@@ -29,7 +29,7 @@ The first start downloads pinned model weights into `/cache`; a persistent volum
 
 Tokens must contain 16–4096 printable ASCII characters without whitespace. A trailing newline in a secret file is accepted. Restart the service after changing a token or model. Configure the same token in Grafana's secure datasource settings. Requests are checked with constant-time comparison. Without a token, use an isolated trusted network; token authentication does not replace TLS across untrusted networks.
 
-Our initial infrastructure tests favored **5M, seven days of history and five-minute samples**. Try a two-hour forecast for rapidly changing signals and a six-hour forecast for slower trends. The 28M model gave less than 1% aggregate improvement on those examples; larger does not guarantee better forecasts. Compare holdout MAE with the persistence baseline on your own metrics.
+Start with **5M, seven days of history and five-minute samples**. See [settings by metric](../README.md#settings-by-metric) for tested recommendations, sampling trade-offs and validation guidance.
 
 ## HTTP API
 

@@ -10,7 +10,7 @@ Start with the [one-command demo and setup guide](https://github.com/antoinerrr/
 2. In a panel, choose Timestral, select an existing source datasource, and use its normal query editor. The source must return numeric time-series frames.
 3. Choose **1h**, **2h**, **6h** or **24h** ahead. Set the dashboard range end into the future, for example `now+6h`.
 
-The default history is seven days at five-minute intervals. **Advanced** exposes history, sampling, custom forecast steps, physical bounds, units, display labels and source query JSON. Up to 16 series are supported per query. Use gauges or rates; convert cumulative counters to rates in the source query.
+The default history is seven days at five-minute intervals. See [settings by metric](https://github.com/antoinerrr/grafana-timestral#settings-by-metric) for CPU, memory, storage, power and throughput guidance. **Advanced** exposes history, sampling, custom forecast steps, physical bounds, units, display labels and source query JSON. Up to 16 series are supported per query. Use gauges or rates; convert cumulative counters to rates in the source query.
 
 **Actual + forecast** shows observations, the median prediction, and a p10–p90 band. **Historical validation** withholds recent observations and compares predictions with them. **Summary statistics** reports the forecast endpoint, peak, change, mean absolute error and a last-value baseline. Lower error is better; a forecast is useful when it consistently improves on the baseline. The uncertainty band does not guarantee 80% coverage.
 

@@ -39,26 +39,35 @@ Use a **Time series** panel and extend its time range into the future, for examp
 
 **Forecast** shows observations, an orange median prediction, and a blue p10–p90 band with visible bounds. **Backtest** predicts the last part of the history, then compares it with the actual values. **Summary** provides current/forecast values and error scores for stat or table panels. Advanced settings control history, sampling, holdout duration, units, and physical bounds.
 
-## Settings that worked best
+## Settings by metric
 
-These are starting points from our infrastructure tests, not universal optimal settings.
+Start with **5M, 7 days of history, 5-minute samples, a 6-hour forecast and historical validation on**. These are starting points from our infrastructure tests; the behavior of your series matters more than its metric name.
 
-| Setting | Start with | Why |
+| Metric | History / sampling | Guidance |
 | --- | --- | --- |
-| Model | **5M** | 28M reduced average absolute error by less than 1% on each of four tested signals, at roughly 2.3× the compute time. |
-| History | **7 days** | Longer history did not consistently improve our real metrics. |
-| Sample interval | **5 minutes** | Coarser 15-minute sampling did not improve the selected configuration. |
-| Forecast | **6 hours** | Useful default for capacity trends. Try **2 hours** for a shorter operational view. |
-| Backtest | **On**, same duration | Compare Timestral's MAE with **Naive MAE**, which repeats the last observation. Lower is better. |
-| Bounds | Only known limits | Use 0–100 for percentages, or 0 for nonnegative measurements. Bounds clip predictions; they do not improve the model. |
+| **CPU usage** | 7d / 5m | Good for the expected load level. One-minute sampling or 14d history gave only small improvements (~2%); neither reliably recovered spikes. |
+| **Memory usage** | 7d / 5m | Keep the same hosts in the aggregate. One-minute sampling gave a small, uncertain gain and did not improve larger misses. |
+| **Storage usage** | 7d / 5m | Useful for steady growth. Avoid history spanning capacity changes; 14d hurt our tested volume. A short forecast is not a reliable disk-full date. |
+| **Power demand** | 7d / 5m | Useful for demand levels and uncertainty. More history or finer sampling did not consistently improve accuracy. |
+| **Bursty throughput** | 7d / 5m | Forecast a rate, not a cumulative counter. Our read-throughput test beat the last-value baseline but still missed large bursts. More amplitude does not make peak timing predictable. |
 
-Tests used 28 historical windows per signal; settings were selected on the first 14 and evaluated on the next 14. Fourteen days of history helped CPU slightly (~2%), barely changed power, and worsened storage. Memory's small gain was inconsistent. Longer history took 1.4–2× as long; 28/56 days were unavailable because the source retained 21 days.
+Choose the forecast duration you need. **1h or 2h** gives a shorter operational view; **6h** suits a longer outlook. In our tests, requesting a shorter forecast did not improve predictions at the same lead time.
 
-Further CPU/power tuning tested 12h–7d history and 1/5/15-minute sampling. It found no reliable six-hour improvement. These were retrospective tests on previously inspected dates. Shorter forecasts reproduced the same predictions at matching lead times. A smooth median can be appropriate when spike timing is uncertain; use P10–P90 to assess uncertainty.
+### Trying one-minute samples
 
-When changing sampling, check the source query's minimum interval and reselect the forecast duration. History includes the holdout, so a 24h history with a 6h backtest trains on the preceding 18h.
+1. Set **Sample interval** to **60 seconds**.
+2. Reselect the forecast duration. For **6h**, both forecast and holdout need **360 steps** instead of 72.
+3. Check the source query's minimum interval and that it supplies data at this resolution.
 
-Choose stable series with enough history. Forecast rates rather than raw counters. Avoid aggregates whose membership changes: a node joining or leaving can move a memory percentage without a predictable trend. Deployments, restarts, and sudden workload changes remain difficult. The p10–p90 band is a nominal 80% interval, not a guarantee; check several historical ranges before relying on it.
+Keep history unchanged when comparing sampling. With seven days of history, one-minute samples reduced CPU MAE by **1.9%** and memory MAE by **1.4%**, but neither gain was reliable. They requested **5× as many samples** and took roughly **3–4×** the inference time. Five minutes remains the simpler default. Sampling `rate(counter[5m])` every minute still measures a five-minute rate.
+
+### Check the fit
+
+Compare several historical ranges with the same forecast duration and target timestamps. **MAE** should consistently beat **Naive MAE**, which repeats the last observation. Also check the curves and **P10–P90 coverage**: this is a nominal 80% interval, not a guarantee. A smooth median can be appropriate when spike timing is uncertain.
+
+History includes the holdout: **24h history + 6h backtest = 18h training**. Use only available, relevant history; older deployments, resizes or membership changes can reduce accuracy. Set bounds only for known limits, such as **0–100** for percentages or **0** for nonnegative values. Bounds clip predictions; they do not improve the model.
+
+The comparisons used 28 historical six-hour windows per signal, with settings selected on the first half and evaluated on the second where applicable. These are retrospective results. **28M** improved average error by less than 1% on each of four tested signals at roughly 2.3× the compute time, so **5M** remains the default.
 
 To try the larger model:
 
