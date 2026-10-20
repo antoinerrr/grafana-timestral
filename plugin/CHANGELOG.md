@@ -1,5 +1,10 @@
 # Changelog
 
+## 0.1.1 — 2026-10-20
+
+- Show P10/P90 bounds and legends with a clearer uncertainty band.
+- Add day-to-day variation to the synthetic demo.
+
 ## 0.1.0 — 2026-10-20
 
 - Forecast numeric series from an existing Grafana datasource using its own query editor.

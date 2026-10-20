@@ -141,10 +141,15 @@ export function extractSeries(
 function numberField(name: string, values: Array<number | null>, unit?: string, color?: string): Partial<Field> {
   const lower = name.endsWith('p10');
   const upper = name.endsWith('p90');
-  const custom = lower
-    ? { lineWidth: 0, fillOpacity: 0, hideFrom: { legend: true } }
-    : upper
-      ? { lineWidth: 0, fillOpacity: 16, fillBelowTo: name.replace(/p90$/, 'p10'), hideFrom: { legend: true } }
+  const custom =
+    lower || upper
+      ? {
+          lineWidth: 1,
+          lineStyle: { fill: 'dash', dash: [4, 4] },
+          fillOpacity: upper ? 24 : 0,
+          ...(upper ? { fillBelowTo: name.replace(/p90$/, 'p10') } : {}),
+          hideFrom: { legend: false },
+        }
       : { lineWidth: 2 };
   return {
     name,

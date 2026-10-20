@@ -37,7 +37,7 @@ Requires Grafana 13 or later. Tested with 13.0.2.
 
 Use a **Time series** panel and extend its time range into the future, for example `now-18h` to `now+6h`. The forecast starts at the earlier of now and the dashboard's range end. History is fetched separately, so the visible range does not limit training data.
 
-**Forecast** shows observations and p10/p50/p90 predictions. **Backtest** predicts the last part of the history, then compares it with the actual values. **Summary** provides current/forecast values and error scores for stat or table panels. Advanced settings control history, sampling, holdout duration, units, and physical bounds.
+**Forecast** shows observations, an orange median prediction, and a blue p10–p90 band with visible bounds. **Backtest** predicts the last part of the history, then compares it with the actual values. **Summary** provides current/forecast values and error scores for stat or table panels. Advanced settings control history, sampling, holdout duration, units, and physical bounds.
 
 ## Settings that worked best
 
@@ -46,13 +46,15 @@ These are starting points from our infrastructure tests, not universal optimal s
 | Setting | Start with | Why |
 | --- | --- | --- |
 | Model | **5M** | 28M reduced average absolute error by less than 1% on each of four tested signals, at roughly 2.3× the compute time. |
-| History | **7 days** | Best selection result among the tested memory configurations. |
+| History | **7 days** | Longer history did not consistently improve our real metrics. |
 | Sample interval | **5 minutes** | Coarser 15-minute sampling did not improve the selected configuration. |
 | Forecast | **6 hours** | Useful default for capacity trends. Try **2 hours** for a shorter operational view. |
 | Backtest | **On**, same duration | Compare Timestral's MAE with **Naive MAE**, which repeats the last observation. Lower is better. |
 | Bounds | Only known limits | Use 0–100 for percentages, or 0 for nonnegative measurements. Bounds clip predictions; they do not improve the model. |
 
 The model comparison used 28 historical windows per signal, with seven days of input and six-hour forecasts. Memory tuning tested nine configurations, selecting on the first 14 windows and evaluating on the next 14. Shorter history and coarser sampling gave no reliable six-hour improvement. A two-hour forecast was easier to get right, but did not improve predictions at the same lead time.
+
+A separate seven-versus-fourteen-day test used 28 matched six-hour windows per signal, again split 14/14. On the reserved windows, fourteen days reduced CPU error by 1.8%, memory by 2.5%, and power by 0.08%, but increased storage error by 47%. Memory preferred seven days during selection, so its later small gain is inconclusive. Longer histories included older membership/capacity changes and took 1.4–2× as long to compute. Start with seven days and validate longer history per metric. We could not test 28 or 56 days because the source retained only 21 days.
 
 Choose stable series with enough history. Forecast rates rather than raw counters. Avoid aggregates whose membership changes: a node joining or leaving can move a memory percentage without a predictable trend. Deployments, restarts, and sudden workload changes remain difficult. The p10–p90 band is a nominal 80% interval, not a guarantee; check several historical ranges before relying on it.
 

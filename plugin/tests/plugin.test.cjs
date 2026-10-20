@@ -493,7 +493,7 @@ test('an empty source Observable returns a useful error', async () => {
   assert.equal(h.forecasts.length, 0);
 });
 
-test('multi-series forecast and validation bands target the matching lower bound without panel overrides', async () => {
+test('forecast and validation expose unchanged quantiles with visible bands for each series', async () => {
   const h = harness();
   h.source.query = async () => ({
     data: [
@@ -520,11 +520,17 @@ test('multi-series forecast and validation bands target the matching lower bound
         `${frame.name} · ${mode === 'forecast' ? 'Forecast' : 'Backtest'} p10`
       );
       assert.equal(upper.config.custom.fillBelowTo, lower.name);
-      assert.equal(upper.config.custom.fillOpacity, 16);
+      assert.equal(upper.config.custom.fillOpacity, 24);
+      assert.equal(lower.config.custom.fillOpacity, 0);
       for (const bound of [lower, upper]) {
-        assert.equal(bound.config.custom.lineWidth, 0);
-        assert.equal(bound.config.custom.hideFrom.legend, true);
+        assert.equal(bound.config.custom.lineWidth, 1);
+        assert.equal(bound.config.custom.lineStyle.fill, 'dash');
+        assert.deepEqual(Array.from(bound.config.custom.lineStyle.dash), [4, 4]);
+        assert.equal(bound.config.custom.hideFrom.legend, false);
       }
+      assert.deepEqual(Array.from(lower.values), mode === 'forecast' ? [2, 3] : [2]);
+      assert.deepEqual(Array.from(median.values), mode === 'forecast' ? [4, 5] : [4]);
+      assert.deepEqual(Array.from(upper.values), mode === 'forecast' ? [6, 7] : [6]);
       assert.equal(median.config.custom.lineWidth, 2);
       assert.equal(median.config.color.fixedColor, '#FF9830');
     }
