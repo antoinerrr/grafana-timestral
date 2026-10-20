@@ -52,9 +52,11 @@ These are starting points from our infrastructure tests, not universal optimal s
 | Backtest | **On**, same duration | Compare Timestral's MAE with **Naive MAE**, which repeats the last observation. Lower is better. |
 | Bounds | Only known limits | Use 0–100 for percentages, or 0 for nonnegative measurements. Bounds clip predictions; they do not improve the model. |
 
-The model comparison used 28 historical windows per signal, with seven days of input and six-hour forecasts. Memory tuning tested nine configurations, selecting on the first 14 windows and evaluating on the next 14. Shorter history and coarser sampling gave no reliable six-hour improvement. A two-hour forecast was easier to get right, but did not improve predictions at the same lead time.
+Tests used 28 historical windows per signal; settings were selected on the first 14 and evaluated on the next 14. Fourteen days of history helped CPU slightly (~2%), barely changed power, and worsened storage. Memory's small gain was inconsistent. Longer history took 1.4–2× as long; 28/56 days were unavailable because the source retained 21 days.
 
-A separate seven-versus-fourteen-day test used 28 matched six-hour windows per signal, again split 14/14. On the reserved windows, fourteen days reduced CPU error by 1.8%, memory by 2.5%, and power by 0.08%, but increased storage error by 47%. Memory preferred seven days during selection, so its later small gain is inconclusive. Longer histories included older membership/capacity changes and took 1.4–2× as long to compute. Start with seven days and validate longer history per metric. We could not test 28 or 56 days because the source retained only 21 days.
+Further CPU/power tuning tested 12h–7d history and 1/5/15-minute sampling. It found no reliable six-hour improvement. These were retrospective tests on previously inspected dates. Shorter forecasts reproduced the same predictions at matching lead times. A smooth median can be appropriate when spike timing is uncertain; use P10–P90 to assess uncertainty.
+
+When changing sampling, check the source query's minimum interval and reselect the forecast duration. History includes the holdout, so a 24h history with a 6h backtest trains on the preceding 18h.
 
 Choose stable series with enough history. Forecast rates rather than raw counters. Avoid aggregates whose membership changes: a node joining or leaving can move a memory percentage without a predictable trend. Deployments, restarts, and sudden workload changes remain difficult. The p10–p90 band is a nominal 80% interval, not a guarantee; check several historical ranges before relying on it.
 
